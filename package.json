@@ -1,0 +1,15 @@
+{
+  "name": "stocks-bot",
+  "version": "0.0.1",
+  "description": "A simple Discord bot that retrieves stocks data from the Alpha Vantage API.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "keywords": [],
+  "author": "grimtastic",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.0.1"
+  }
+}
