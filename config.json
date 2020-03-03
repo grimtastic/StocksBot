@@ -1,0 +1,19 @@
+{
+    "discord_api_key":"",
+    "discord_channel":"",
+    "alpha_vantage_api_key":"",
+    "stocks":{
+        "MSFT": "Microsoft"
+    },
+    "message_config":{
+        "title":"",
+        "thumbnail":"",
+        "color":"",
+        "inline":true,
+        "image":"",
+        "footer":"",
+        "change_indicators":true
+    },
+    "alert_if_error":true,
+    "print_activity":false
+}
