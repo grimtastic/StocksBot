@@ -22,5 +22,7 @@ The bot requires a config file named *config.json*.
   - thumbnail: URL to thumbnail for message.
   - color: Color for message. (Stop to the left of the message.)
   - inline: If multiple stocks should appear on the same row.
+  - image: URL to image to place at bottom of message.
+  - footer: Footer text for message.
 - alert_if_error: If a message should be sent to Discord in the event of the bot failing.
 - print_activity: If the bot should print what it is doing.
