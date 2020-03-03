@@ -38,5 +38,9 @@ interface Settings {
         color: string;
         // if multiple stocks should appear on the same row
         inline: boolean;
+        // image to accompany message at the bottom
+        image: string;
+        // footer text
+        footer: string;
     }
 }

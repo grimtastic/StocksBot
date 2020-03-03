@@ -33,6 +33,12 @@ function sendMessage(channel, stocks) {
             if (settings.message_config.thumbnail) {
                 embed.setThumbnail(settings.message_config.thumbnail);
             }
+            if (settings.message_config.image) {
+                embed.setImage(settings.message_config.image);
+            }
+            if (settings.message_config.footer) {
+                embed.setFooter(settings.message_config.footer);
+            }
         }
 
         // add stocks to message
