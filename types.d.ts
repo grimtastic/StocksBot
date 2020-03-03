@@ -42,5 +42,7 @@ interface Settings {
         image: string;
         // footer text
         footer: string;
+        // if emojis should be added to messages to indicate price movement
+        change_indicators: boolean;
     }
 }

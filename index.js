@@ -51,8 +51,21 @@ function sendMessage(channel, stocks) {
                 var symbol = stock.symbol;
             }
 
+            if (settings.message_config.change_indicators) {
+                if (stock.change > 0) {
+                    var emoji = ':chart_with_upwards_trend:';
+                } else if (stock.change < 0) {
+                    var emoji = ':chart_with_downwards_trend:';
+                }
+            }
+
+            let txt = `$${stock.price} (${stock.changePercent})`;
+            if (emoji) {
+                txt += ` ${emoji}`;
+            }
+
             // add to message
-            embed.addField(symbol, `$${stock.price} (${stock.changePercent})`, settings.message_config.inline);
+            embed.addField(symbol, txt, settings.message_config.inline);
         });
 
         // send message
@@ -79,7 +92,7 @@ client.once('ready', async ()=>{
         } catch (err) {
             console.error(`Error getting stocks data: ${err}`);
             if (settings.alert_if_error) {
-                channel.send('An error occurred.');
+                await channel.send('An error occurred.');
             }
         }
 
@@ -89,7 +102,7 @@ client.once('ready', async ()=>{
             } catch(err) {
                 console.error(`Error sending message: ${err}`);
                 if (settings.alert_if_error) {
-                    channel.send('An error occurred.');
+                    await channel.send('An error occurred.');
                 }
             }
         }
