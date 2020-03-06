@@ -12,7 +12,7 @@ The bot requires a config file named *config.json*.
 
 **Required fields**
 - discord_api_key: Your Discord bot API key.
-- discord_channel: Channel ID for bot to post in.
+- discord_channels: Channel ID or array of channel IDs for bot to post in.
 - alpha_vantage_api_key: API key for Alpha Vantage.
 - stocks: An object with stock symbols as the keys and stock names as the values.
 

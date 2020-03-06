@@ -1,11 +1,61 @@
+/** @type {Settings} settings */
 const settings = require('./settings');
 const Discord = require('discord.js');
 const StocksGetter = require('./stocks-getter');
 
 const client = new Discord.Client();
 
+// indicate that app has started
 if (settings.print_activity) {
     console.log('Started');
+}
+
+/**
+ * Sends a message to each Discord channel.
+ * @param {string|Discord.MessageEmbed} msg 
+ */
+function dispatchMsg(msg) {
+    return new Promise(async (resolve, reject)=>{
+        if (settings.print_activity) {
+            console.log('Dispatching message to channel(s)');
+        }
+
+        if (Array.isArray(settings.discord_channels)) {
+            // channel setting is an array; send message to all channels
+            /** @type { string[] } channels */
+            let channels = settings.discord_channels;
+
+            // send message to each channel
+            for (let i = 0; i < channels.length; i++) {
+                /** @type {Discord.TextChannel} channel */            
+                let channel = client.channels.cache.get(channels[i]);
+                if (channel) {
+                    try {
+                        await channel.send(msg);
+                    } catch (err) {
+                        console.error(`Error sending message to channel ${channels[i]}: ${err}`);
+                    }
+                } else {
+                    console.error(`Cannot find channel for ID ${channels[i]}`);
+                }
+            }
+            resolve();
+        } else {
+            // channel is a string; send to single channel
+            let channel = client.channels.cache.get(settings.discord_channels);
+    
+            if (channel) {
+                // send message
+                channel.send(msg)
+                .then(resolve)
+                .catch(err=>{
+                    reject(`Error sending message to channel: ${err}`);                    
+                })
+            } else {
+                reject(`Cannot find channel for ID ${settings.discord_channels}`);
+            }
+        }
+    });    
 }
 
 /**
@@ -14,14 +64,14 @@ if (settings.print_activity) {
  * @param {Stock[]} stocks
  * @returns { Promise<void> }
  */
-function sendMessage(channel, stocks) {
+function sendStockDataMessage(stocks) {
     return new Promise((resolve, reject)=>{
         if (settings.print_activity) {
-            console.log('Sending message to Discord channel');
+            console.log('Making stocks data message');
         }
-
+    
         let embed = new Discord.MessageEmbed();
-
+    
         // apply message settings from config file
         if (settings.message_config) {
             if (settings.message_config.color) {
@@ -40,7 +90,7 @@ function sendMessage(channel, stocks) {
                 embed.setFooter(settings.message_config.footer);
             }
         }
-
+    
         // add stocks to message
         stocks.forEach(stock=>{
             // get name of stock from config; use symbol if cannot find name
@@ -50,7 +100,7 @@ function sendMessage(channel, stocks) {
             } else {
                 var symbol = stock.symbol;
             }
-
+    
             if (settings.message_config.change_indicators) {
                 if (stock.change > 0) {
                     var emoji = ':chart_with_upwards_trend:';
@@ -58,21 +108,20 @@ function sendMessage(channel, stocks) {
                     var emoji = ':chart_with_downwards_trend:';
                 }
             }
-
+    
             let txt = `$${stock.price} (${stock.changePercent})`;
             if (emoji) {
                 txt += ` ${emoji}`;
             }
-
+    
             // add to message
             embed.addField(symbol, txt, settings.message_config.inline);
         });
-
-        // send message
-        channel.send(embed)
+    
+        dispatchMsg(embed)
         .then(resolve)
-        .catch(reject)
-    });
+        .catch(reject);
+    })    
 }
 
 // Discord client is ready; do work
@@ -81,31 +130,36 @@ client.once('ready', async ()=>{
         console.log('Ready');
     }
 
-    /** @type { Discord.TextChannel } */
-    const channel = client.channels.cache.get(settings.discord_channel);
-
-    if (!channel) {
-        console.error('Bot may not have access to Discord channel specified in config.');
-    } else {
-        try {
-            var stocksData = await StocksGetter();
-        } catch (err) {
-            console.error(`Error getting stocks data: ${err}`);
-            if (settings.alert_if_error) {
-                await channel.send('An error occurred.');
+    // get stocks data
+    try {
+        var stocksData = await StocksGetter();
+    } catch (err) {
+        console.error(`Error getting stocks data: ${err}`);
+        if (settings.alert_if_error) {
+            try {
+                await dispatchMsg('An error occurred.');
+            } catch (err) {
+                console.error(`Error dispatching error message: ${err}`);
             }
         }
+    }
 
-        if (stocksData) {
-            try {
-                await sendMessage(channel, stocksData);
-            } catch(err) {
-                console.error(`Error sending message: ${err}`);
-                if (settings.alert_if_error) {
-                    await channel.send('An error occurred.');
+    // send stocks data, if any
+    if (stocksData) {
+        try {
+            await sendStockDataMessage(stocksData);            
+        } catch (err) {
+            if (err) {
+                console.error(`Error sending stock data message: ${err}`);
+            }
+            if (settings.alert_if_error) {
+                try {
+                    await dispatchMsg('An error occurred.');
+                } catch (err) {
+                    console.error(`Error dispatching error message: ${err}`);
                 }
             }
-        }
+        }        
     }
 
     client.destroy();

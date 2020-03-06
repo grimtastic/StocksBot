@@ -17,7 +17,7 @@ interface Settings {
     // api key for Discord
     discord_api_key: string;
     // ID for Discord channel to post in
-    discord_channel: string;
+    discord_channels: string | string[];
     // API key for Alpha Vantage
     alpha_vantage_api_key: string;
     // stocks to check; object with stock symbol as key and name as value

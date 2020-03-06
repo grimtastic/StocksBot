@@ -22,8 +22,8 @@ try {
         if (!settings.discord_api_key) {
             missing.push('discord_api_key');
         }
-        if (!settings.discord_channel) {
-            missing.push('discord_channel');
+        if (!settings.discord_channels) {
+            missing.push('discord_channels');
         }
         if (!settings.stocks) {
             missing.push('stocks');
