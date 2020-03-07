@@ -1,6 +1,7 @@
 {
     "discord_api_key":"",
     "discord_channels":[""],
+    "test_channels":[""],
     "alpha_vantage_api_key":"",
     "stocks":{
         "MSFT": "Microsoft"

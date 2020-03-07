@@ -4,7 +4,8 @@
   "description": "A simple Discord bot that retrieves stocks data from the Alpha Vantage API.",
   "main": "index.js",
   "scripts": {
-    "start": "node ."
+    "start": "node .",
+    "test": "node . -test"
   },
   "keywords": [],
   "author": "grimtastic",

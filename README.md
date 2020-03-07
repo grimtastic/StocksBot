@@ -6,6 +6,7 @@ Requires Node.js.
 To install: npm install
 
 To run: npm start
+To test: npm test
 
 ## Config File
 The bot requires a config file named *config.json*.
@@ -27,3 +28,4 @@ The bot requires a config file named *config.json*.
   - change_indicators: If emojis should be added to messages to indicate movement of stock.
 - alert_if_error: If a message should be sent to Discord in the event of the bot failing.
 - print_activity: If the bot should print what it is doing.
+- test_channels: An array of channel IDs to be messaged instead of discord_channels when in test mode.

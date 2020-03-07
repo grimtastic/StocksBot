@@ -20,29 +20,30 @@ function dispatchMsg(msg) {
             console.log('Dispatching message to channel(s)');
         }
 
-        if (Array.isArray(settings.discord_channels)) {
+        // select list of channels based on if its test mode or not
+        let channelList = (!settings.isTestMode ? settings.discord_channels : settings.test_channels);
+
+        if (Array.isArray(channelList)) {
             // channel setting is an array; send message to all channels
             /** @type { string[] } channels */
-            let channels = settings.discord_channels;
-
             // send message to each channel
-            for (let i = 0; i < channels.length; i++) {
+            for (let i = 0; i < channelList.length; i++) {
                 /** @type {Discord.TextChannel} channel */            
-                let channel = client.channels.cache.get(channels[i]);
+                let channel = client.channels.cache.get(channelList[i]);
                 if (channel) {
                     try {
                         await channel.send(msg);
                     } catch (err) {
-                        console.error(`Error sending message to channel ${channels[i]}: ${err}`);
+                        console.error(`Error sending message to channel ${channelList[i]}: ${err}`);
                     }
                 } else {
-                    console.error(`Cannot find channel for ID ${channels[i]}`);
+                    console.error(`Cannot find channel for ID ${channelList[i]}`);
                 }
             }
             resolve();
         } else {
             // channel is a string; send to single channel
-            let channel = client.channels.cache.get(settings.discord_channels);
+            let channel = client.channels.cache.get(channelList);
     
             if (channel) {
                 // send message
@@ -52,7 +53,7 @@ function dispatchMsg(msg) {
                     reject(`Error sending message to channel: ${err}`);                    
                 })
             } else {
-                reject(`Cannot find channel for ID ${settings.discord_channels}`);
+                reject(`Cannot find channel for ID ${channelList}`);
             }
         }
     });    

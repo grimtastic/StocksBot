@@ -41,6 +41,13 @@ try {
     process.exit(1);
 })();
 
+// determine if test mode
+settings.isTestMode = process.argv.includes('-test');
+if (settings.isTestMode && !settings.test_channels) {
+    console.error('App is in test mode but test_channels setting is missing in config');
+    process.exit(1);
+}
+
 // set default value for API limit
 settings.api_limit = settings.api_limit || 5;
 

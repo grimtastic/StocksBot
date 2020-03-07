@@ -16,8 +16,10 @@ interface Stock {
 interface Settings {
     // api key for Discord
     discord_api_key: string;
-    // ID for Discord channel to post in
+    // ID for Discord channel(s) to post in
     discord_channels: string | string[];
+    // ID for Discord channel(s) to post in when in test mode
+    test_channels: string | string[];
     // API key for Alpha Vantage
     alpha_vantage_api_key: string;
     // stocks to check; object with stock symbol as key and name as value
@@ -44,5 +46,6 @@ interface Settings {
         footer: string;
         // if emojis should be added to messages to indicate price movement
         change_indicators: boolean;
-    }
+    },
+    isTestMode?:boolean; // if app was launched with -test; set by Settings module
 }
