@@ -6,6 +6,7 @@ Requires Node.js.
 To install: npm install
 
 To run: npm start
+
 To test: npm test
 
 ## Config File
