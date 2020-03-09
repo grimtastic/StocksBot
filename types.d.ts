@@ -12,8 +12,25 @@ interface Stock {
     changePercent: string;
 }
 
+// MessageEmbed field
+type Field = {
+    title: string;
+    value: string;
+};
+
+// data for MessageEmbed
+interface Message {
+    fields: Field[];
+    title?: string;
+    color?: string;
+    thumbnail?: string;
+    image?: string;
+    footer?: string;
+    inline?: boolean;
+}
+
 // settings in config files
-interface Settings {
+interface SettingsDef {
     // api key for Discord
     discord_api_key: string;
     // ID for Discord channel(s) to post in
