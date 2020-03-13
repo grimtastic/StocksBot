@@ -1,6 +1,6 @@
 {
   "name": "stocks-bot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple Discord bot that retrieves stocks data from the Alpha Vantage API.",
   "main": "index.js",
   "scripts": {

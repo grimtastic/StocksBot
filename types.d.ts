@@ -29,12 +29,20 @@ interface Message {
     inline?: boolean;
 }
 
+// data that represents a channel
+interface ChannelDetails {
+    // ids of channels to send to
+    id: string | string[];
+    ignore_default: boolean;
+    stocks: string | {[s:string]:string};
+}
+
 // settings in config files
 interface SettingsDef {
     // api key for Discord
     discord_api_key: string;
     // ID for Discord channel(s) to post in
-    discord_channels: string | string[];
+    discord_channels: string | string[] | ChannelDetails;
     // ID for Discord channel(s) to post in when in test mode
     test_channels: string | string[];
     // API key for Alpha Vantage

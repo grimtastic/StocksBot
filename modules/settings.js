@@ -1,8 +1,10 @@
 /**
  * SETTINGS
  * Module for loading and parsing config file.
+ * TODO: Make sure settings are the correct types.
  */
 
+ /** @type { SettingsDef } */
 var settings = { };
 
 /**
@@ -22,25 +24,50 @@ function load(path) {
      * Check settings to ensure no issues.
      */    
     if (!settings) {
-        var err = 'No config file found.';
+        throw 'No config file found.';
     } else {
         let missing = [ ];
-        let problem = false;
 
+        // check for Alpha Vantage API key
         if (!settings.alpha_vantage_api_key) {
             missing.push('alpha_vantage_api_key');
         }
+
+        // check for Discord API key
         if (!settings.discord_api_key) {
             missing.push('discord_api_key');
         }
+
+        // check for Discord channel(s)
         if (!settings.discord_channels) {
             missing.push('discord_channels');
+        } else if (Array.isArray(settings.discord_channels)) {
+            let defaultStocks = (settings.stocks && Object.keys(settings.stocks).length > 0);
+
+            settings.discord_channels.forEach((dc, i)=>{
+                if (typeof dc === 'object') {
+                    /** @type { ChannelDetails } */
+                    let details = dc;
+
+                    if (!details.id || (Array.isArray(details.id) && details.id.length === 0)) {
+                        throw `Channel of index ${i} does not list an id`;
+                    }
+                    if (!details.stocks || Object.keys(details.stocks).length === 0) {
+                        throw `Channel ${details.id} does not provide any stocks`;
+                    }
+                } else if (!defaultStocks) {
+                    throw `Channel ${dc} has no stocks and stocks list is empty`;
+                }
+            });
         }
+
+        // check for stocks
         if (!settings.stocks) {
             missing.push('stocks');
-        } else if (settings.length === 0) {
-            err = `Stocks list is empty`;
-            problem = true;
+        } else if (Object.keys(settings.stocks).length === 0) {
+            if (typeof settings.discord_channels === 'string' || (Array.isArray(settings.discord_channels) && settings.discord_channels.length === 0)) {
+                throw `Stocks list is empty`;
+            }
         }
 
         if (missing.length > 0) {
@@ -48,8 +75,8 @@ function load(path) {
                 console.error(err);
             }
 
-            err = `Config file is missing keys/values: ${missing.join(', ')}`;
-        } else if (!problem) {
+            throw `Config file is missing keys/values: ${missing.join(', ')}`;
+        } else {
             // determine if test mode
             settings.isTestMode = process.argv.includes('-test');
             if (settings.isTestMode && !settings.test_channels) {
@@ -62,8 +89,6 @@ function load(path) {
             return settings;
         }
     }
-
-    throw err;
 }
 
 module.exports = {
