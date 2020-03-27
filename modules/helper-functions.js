@@ -51,7 +51,7 @@ function getJSON(url) {
  * @param {string | string[] | ChannelDetails} discordChannels
  * @returns {{stocks:string[],channels:ChannelDetails[]}}
  */
-function getStocksAndChannels(stocks, discordChannels) {
+function getStocksAndChannels(stocks, discordChannels, useImage = false) {
     // get channels and stocks
     let stocksList = Object.keys(stocks);
     let channels = [ ];
@@ -66,6 +66,7 @@ function getStocksAndChannels(stocks, discordChannels) {
         // find each channel with its own stocks and add them
         discordChannels.forEach(dc=>{
             if (typeof dc === 'object') {
+                /** @type { ChannelDetails[] } */
                 let newChannels = [ ];
 
                 if (Array.isArray(dc.id)) {
@@ -73,14 +74,16 @@ function getStocksAndChannels(stocks, discordChannels) {
                         newChannels.push({
                             id:c,
                             ignore_default:dc.ignore_default || false,
-                            stocks:{}
+                            stocks:{},
+                            use_image:typeof dc.use_image !== 'undefined' ? dc.use_image : useImage
                         });
                     });
                 } else {
                     newChannels.push({
                         id:dc.id,
                         ignore_default:dc.ignore_default || false,
-                        stocks:{}
+                        stocks:{},
+                        use_image:typeof dc.use_image !== 'undefined' ? dc.use_image : useImage
                     });
                 }
                 
@@ -99,7 +102,8 @@ function getStocksAndChannels(stocks, discordChannels) {
             } else {
                 channels.push({
                     id:dc,
-                    stocks:{}
+                    stocks:{},
+                    use_image:useImage
                 });
             }
         });

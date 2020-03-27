@@ -54,6 +54,12 @@ function load(path) {
                     }
                     if (!details.stocks || Object.keys(details.stocks).length === 0) {
                         throw `Channel ${details.id} does not provide any stocks`;
+                    } else {
+                        let stocks = { };
+                        for (let s in details.stocks) {
+                            stocks[s.toUpperCase()] = details.stocks[s];
+                        }
+                        details.stocks = stocks;
                     }
                 } else if (!defaultStocks) {
                     throw `Channel ${dc} has no stocks and stocks list is empty`;
@@ -68,6 +74,14 @@ function load(path) {
             if (typeof settings.discord_channels === 'string' || (Array.isArray(settings.discord_channels) && settings.discord_channels.length === 0)) {
                 throw `Stocks list is empty`;
             }
+        } else {
+            // ensure all stock symbols are uppercase
+            let stocks = { };
+            for (let key in settings.stocks) {
+                let key_uc = key.toUpperCase();
+                stocks[key_uc] = settings.stocks[key];
+            }
+            settings.stocks = stocks;
         }
 
         if (missing.length > 0) {
@@ -85,6 +99,8 @@ function load(path) {
 
             // set default value for API limit
             settings.api_limit = settings.api_limit || 5;
+
+            settings.message_config = settings.message_config || { };
 
             return settings;
         }

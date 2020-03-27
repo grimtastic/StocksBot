@@ -18,6 +18,11 @@ function makeEmbed(data) {
         throw 'No data for embed';
     }
 
+    // no object
+    if (typeof data !== 'object') {
+        throw 'Data for embed is wrong type';
+    }
+
     // check required data
     if (!data.fields || data.fields.length === 0) {
         throw 'No data fields specified';
@@ -64,11 +69,20 @@ function makeEmbed(data) {
  */
 function dispatchMsg(channels, msg) {
     return new Promise(async (resolve, reject)=>{
-        if (!channels) {
+        // check channels is valid
+        if (!channels || (Array.isArray(channels) && channels.length === 0)) {
             return reject('No channels specified');
         }
+        if (typeof channels !== 'string' && !Array.isArray(channels)) {
+            return reject('Channels is not string or array');
+        }
+
+        // check msg is valid
         if (!msg) {
             return reject('No message specified');
+        }
+        if (typeof msg !== 'string' && typeof msg !== 'object') {
+            return reject('Message is not a string or MessageEmbed');
         }
 
         // turn string into list if necessary to make things easier
@@ -95,11 +109,7 @@ function dispatchMsg(channels, msg) {
             }
         }
 
-        if (failures < channels.length) {
-            resolve();
-        } else {
-            reject('Failed to send to all channels');
-        }
+        resolve(failures === 0);
     });    
 }
 
@@ -119,9 +129,36 @@ function sendMessage(channels, message) {
  * @param { Message } data 
  * @returns { Promise<void> }
  */
-function sendEmbedMessage(channels, data) {    
+async function sendEmbedMessage(channels, data) {
     var msg = makeEmbed(data);
-    return dispatchMsg(channels, msg);
+    return await dispatchMsg(channels, msg);
+}
+
+/**
+ * Sends an image to channel(s).
+ * @param {string|string[]} channels 
+ * @param {string} image 
+ */
+async function sendImage(channels, image) {
+    if (!image) {
+        throw 'No image specified';
+    }
+
+    if (typeof image !== 'string') {
+        throw 'Image is not a string';
+    }
+
+    /** @type { Discord.APIMessage } */
+    let msg = {
+        files:[
+            {
+                attachment:image,
+                name:'Stocks.png'
+            }
+        ]
+    };
+
+    return await dispatchMsg(channels, msg);
 }
 
 /**
@@ -137,6 +174,7 @@ module.exports = async (apiKey)=>{
     return {
         sendMessage,
         sendEmbedMessage,
+        sendImage,
         disconnect
     }
 };

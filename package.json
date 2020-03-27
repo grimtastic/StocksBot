@@ -1,6 +1,6 @@
 {
   "name": "stocks-bot",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A simple Discord bot that retrieves stocks data from the Alpha Vantage API.",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,8 @@
   "author": "grimtastic",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^12.0.1"
+    "discord.js": "^12.0.1",
+    "puppeteer": "^2.1.1"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",

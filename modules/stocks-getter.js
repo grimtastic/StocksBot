@@ -8,7 +8,7 @@ const Helper = require('./helper-functions');
 /**
  * Fetches data for stock
  * @param {string} stock Stock symbol
- * @returns { Promise<Stock> }
+ * @returns { Promise<StockResults> }
  */
 function fetchStock(apiKey, stock) {
     return new Promise(async (resolve, reject)=>{
@@ -19,7 +19,11 @@ function fetchStock(apiKey, stock) {
         try {
             var data = await Helper.getJSON(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${stock}&apikey=${apiKey}`);
         } catch (err) {
-            reject(err);
+            console.warn(`Error getting data for ${stock}: ${err}`);
+            return resolve({
+                symbol:stock,
+                error:true
+            });
         }
         
         // get actual data object
@@ -30,29 +34,49 @@ function fetchStock(apiKey, stock) {
         // check actual data object exists
         if (!stockData) {
             if (!data) {
-                return reject('No data returned from API');
+                console.warn(`No data returned from API for ${stock}`);
+                return resolve({
+                    symbol:stock,
+                    error:true
+                });
             } else if (data["Error Message"]) {
-                return reject(data["Error Message"]);
+                console.warn(`Error for stock ${stock}: ${data["Error Message"]}`);
+                return resolve({
+                    symbol:stock,
+                    error:true
+                });
             }
             if (data.Note) {
-                return reject(data.Note);
+                console.warn(`Error for stock ${stock}: ${data.Note}`);
+                return resolve({
+                    symbol:stock,
+                    error:true
+                });
             } else {
-                return reject("Stock data didn't have Global Quote value");
+                console.warn(`Stock data for ${stock} didn't have Global Quote value`);
+                return resolve({
+                    symbol:stock,
+                    error:true
+                });
             }
         }
 
         // convert fetched object into more useful Stock object
         resolve({
             symbol:stock,
-            open:parseFloat(stockData['02. open']),
-            high:parseFloat(stockData['03. high']),
-            low:parseFloat(stockData['04. low']),
-            price:parseFloat(stockData['05. price']),
-            volume:+stockData['06. volume'],
-            latestTradingDay:stockData['07. latestTradingDay'],
-            previousClose:stockData['08. previous close'],
-            change:parseFloat(stockData['09. change']),
-            changePercent:stockData['10. change percent']
+            error:false,
+            stock:{
+                symbol:stock,
+                open:parseFloat(stockData['02. open']),
+                high:parseFloat(stockData['03. high']),
+                low:parseFloat(stockData['04. low']),
+                price:parseFloat(stockData['05. price']),
+                volume:+stockData['06. volume'],
+                latestTradingDay:stockData['07. latestTradingDay'],
+                previousClose:stockData['08. previous close'],
+                change:parseFloat(stockData['09. change']),
+                changePercent:stockData['10. change percent']
+            }
         });
     });    
 }
@@ -60,7 +84,7 @@ function fetchStock(apiKey, stock) {
 /**
  * Gets the data for an array of stock symbols.
  * @param {string[]} stocks
- * @return { Stock[] }
+ * @return { Promise<StockResults[]> }
  */
 async function fetchStockData(apiKey, stocks) {
     return await Promise.all(stocks.map(stock=>fetchStock(apiKey, stock)));
@@ -89,7 +113,9 @@ function getStocksData(apiKey, stocks, apiLimit = 5, waitTime = 60000) {
         // if number of stocks is no more than API limit, just get data for all stocks and return
         if (stocks.length <= apiLimit) {
             fetchStockData(apiKey, stocks)
-            .then(resolve)
+            .then(data=>{
+                resolve(data.filter(stock=>!stock.error).map(stock=>stock.stock));
+            })
             .catch(reject);
             return;
         }
@@ -120,7 +146,7 @@ function getStocksData(apiKey, stocks, apiLimit = 5, waitTime = 60000) {
 
             if (ret) {
                 // add stock data to existing set of returned data
-                data.push.apply(data, ret);
+                data.push.apply(data, ret.filter(stock=>!stock.error).map(stock=>stock.stock));
             }
 
             // if all stocks fetched, clear timer and return data

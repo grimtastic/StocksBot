@@ -20,36 +20,56 @@ const mock_invalidKey = { 'Error Message': RESPONSE_INVALID_KEY }
 /**
  * Forces API calls to return bad data (null).
  */
-function useBadResponse() {
-    Helper.getJSON.mockResolvedValue(null);
+function useBadResponse(symbol) {
+    Helper.getJSON.mockResolvedValue({
+        symbol,
+        error:true,
+        stock:null
+    });
 }
 
 /**
  * Forces API calls to simulate bad status (404).
  */
-function useBadStatus() {
-    Helper.getJSON.mockImplementation(()=>{ throw 'Wrong response from Alpha Vantage: 404'; });
+function useBadStatus(symbol) {
+    Helper.getJSON.mockResolvedValue({
+        symbol,
+        error:true,
+        stock:null
+    });
 }
 
 /**
  * Forces API calls to simulate API limit exceeded.
  */
-function useAPILimitExceeded() {
-    Helper.getJSON.mockResolvedValue(mock_apiLimitExceeded);
+function useAPILimitExceeded(symbol) {
+    Helper.getJSON.mockResolvedValue({
+        symbol,
+        error:true,
+        stock:null
+    });
 }
 
 /**
  * Forces API calls to simulate invalid call (unknown stock).
  */
-function useInvalidCall() {
-    Helper.getJSON.mockResolvedValue(mock_invalidCall);
+function useInvalidCall(symbol) {
+    Helper.getJSON.mockResolvedValue({
+        symbol,
+        error:true,
+        stock:null
+    });
 }
 
 /**
  * Forces API calls to simulate invalid key.
  */
-function useInvalidAPIKey() {
-    Helper.getJSON.mockResolvedValue(mock_invalidKey);
+function useInvalidAPIKey(symbol) {
+    Helper.getJSON.mockResolvedValue({
+        symbol,
+        error:true,
+        stock:null
+    });
 }
 
 /**

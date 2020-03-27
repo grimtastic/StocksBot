@@ -34,40 +34,40 @@ describe('stock getter - invalid data', ()=>{
      * Test if API returns no data.
      */
     test('StocksGetter: Bad response', ()=>{
-        APIHelper.useBadResponse();
-        return expect(StocksGetter.get('a')).rejects.toMatch('No data returned from API');
+        APIHelper.useBadResponse('a');
+        return expect(StocksGetter.get('a')).resolves.toMatchObject([]);
     })
 
     /**
      * Test if API returns bad status code.
      */
     test('StocksGetter: Bad status', ()=>{
-        APIHelper.useBadStatus();
-        return expect(StocksGetter.get('a')).rejects.toMatch("Wrong response from Alpha Vantage: 404");
+        APIHelper.useBadStatus('a');
+        return expect(StocksGetter.get('a')).resolves.toMatchObject([]);
     })
 
     /**
      * Test if API returns "over limit" error.
      */
     test('StocksGetter: Over API limit', ()=>{
-        APIHelper.useAPILimitExceeded();
-        return expect(StocksGetter.get('a')).rejects.toMatch(APIHelper.RESPONSE_API_EXCEEDED);
+        APIHelper.useAPILimitExceeded('a');
+        return expect(StocksGetter.get('a')).resolves.toMatchObject([]);
     })
 
     /**
      * Test if invalid call to API, e.g. invalid stock.
      */
     test('StocksGetter: Invalid call', ()=>{
-        APIHelper.useInvalidCall();
-        return expect(StocksGetter.get('a')).rejects.toMatch(APIHelper.RESPONSE_INVALID_CALL);
+        APIHelper.useInvalidCall('a');
+        return expect(StocksGetter.get('a')).resolves.toMatchObject([]);
     })
 
     /**
      * Test if invalid key sent to API.
      */
     test('StocksGetter: Invalid key', ()=>{
-        APIHelper.useInvalidAPIKey();
-        return expect(StocksGetter.get('a')).rejects.toMatch(APIHelper.RESPONSE_INVALID_KEY);
+        APIHelper.useInvalidAPIKey('a');
+        return expect(StocksGetter.get('a')).resolves.toMatchObject([]);
     })
 })
 

@@ -1,155 +1,239 @@
 /**
  * DISCORD HANDLER
  * Tests for Discord Handler module.
- * TODO:
- * - Ensure Discord.Client.send() is actually being called the correct amount of times
- * - Figure out how best to handle error messages, which print during tests
  */
 
-const DiscordHelper = require('./helpers/DiscordHelper');
+const Discord = require('discord.js');
 
+// mock discord functions
+jest.mock('discord.js');
+
+Discord.TextChannel.prototype.send.mockResolvedValue(undefined);
+
+Discord.Client = class {
+    constructor() {
+        this.channels = {
+            cache:{
+                get() {
+                    return new Discord.TextChannel(null);
+                }
+            }
+        }
+    }
+
+    async login() { }
+}
+
+Discord.Client.prototype.destroy = jest.fn();
+
+// module to test
 const DiscordHandler = require('../modules/discord-handler');
 
-// tests that rely on failing to log into Discord
-describe('Discord - unsuccessful login', ()=>{
-    DiscordHelper.failLogin();
+/* TESTS */
 
-    test('Discord - failed login', ()=>{
-        return expect(DiscordHandler('')).rejects.toBe('An invalid token was provided.');
-    });
+// set up instance to test with
+let handler;
+beforeAll(async ()=>{
+    handler = await DiscordHandler('');
 })
 
-// tests that rely on successfully logging into Discord
-describe('Discord - successful login', ()=>{
-    let discord = null;
-
-    beforeAll(()=>{
-        DiscordHelper.succeedLogin();
-        DiscordHelper.succeedGetChannel();
-    });
-
-    /**
-     * Connect to Discord.
-     */
-    test('Discord - successful login', done=>{
-        return DiscordHandler('')
-        .then(funcs=>{
-            discord = funcs;
-            expect(funcs).not.toBeUndefined();
-            done();
+describe('sendMessage', ()=>{
+    /* SUCCESS */
+    test('send 1 - string', ()=>{
+        return handler.sendMessage('channel1', 'msg')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
         })
-    });
-  
-    /**
-     * Send message to single channel.
-     */
-    test('Discord - send message', ()=>{
-        return expect(discord.sendMessage('a', 'b')).resolves.toBeUndefined();
-    });
-
-    /**
-     * Send message to multiple channels.
-     */
-    test('Discord - send message to multiple channels', ()=>{
-        return expect(discord.sendMessage([ 'a', 'b' ], 'c')).resolves.toBeUndefined();
-    });
-
-    /**
-     * Send message without specifying channels.
-     */
-    test('Discord - send message without channels', ()=>{
-        return expect(discord.sendMessage(null, 'a')).rejects.toMatch('No channels specified');
+        .catch(err=>{throw err;});
     })
 
-    /**
-     * Send message without specifying message.
-     */
-    test('Discord - send message without message', ()=>{
-        return expect(discord.sendMessage('a')).rejects.toMatch('No message specified');
+    test('send 1 - array', ()=>{
+        return handler.sendMessage('channel1', 'msg')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
+        })
+        .catch(err=>{throw err;});
     })
 
-    /**
-     * Send embed message.
-     */
-    test('Discord - send embed message', ()=>{
-        let mock_data = {
-            fields:[ { title:'a', value:'b' } ]
-        };
-
-        return expect(discord.sendEmbedMessage('a', mock_data)).resolves.toBeUndefined();
-    });
-
-    /**
-     * Send embed message without specifying channels.
-     */
-    test('Discord - sending embed message without channels', ()=>{
-        let mock_data = { 
-            fields:[ { title:'a', value:'b' } ] 
-        };
-
-        return expect(discord.sendEmbedMessage(null, mock_data)).rejects.toMatch('No channels specified');
+    test('send 2', ()=>{
+        return handler.sendMessage([ 'channel1', 'channel2' ], 'msg')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(2);
+        })
+        .catch(err=>{throw err;});
     })
 
-    /**
-     * Send embed message without specifying message.
-     */
-    test('Discord - sending embed message without message', ()=>{
-        expect(()=>discord.sendEmbedMessage('a')).toThrowError('No data for embed');
+    /* FAILURE */
+    test('no channels', ()=>{
+        return expect(handler.sendMessage([ ], 'msg'))
+        .rejects.toBe('No channels specified');
     })
 
-    /**
-     * Send embed message with bad data.
-     */
-    test('Discord - sending embed message with incorrect data', ()=>{
-        expect(()=>discord.sendEmbedMessage('a', {})).toThrow('No data fields specified');
-    });
+    test('channels is null', ()=>{
+        return expect(handler.sendMessage(null, 'msg'))
+        .rejects.toBe('No channels specified');
+    })
 
-    /**
-     * Send embed message with no fields.
-     */
-    test('Discord - sending embed message with no fields', ()=>{
-        expect(()=>discord.sendEmbedMessage('a', {fields:[]})).toThrow('No data fields specified');
-    });
+    test('channels is wrong type', ()=>{
+        return expect(handler.sendMessage(1, 'msg'))
+        .rejects.toBe('Channels is not string or array');
+    })
 
-    /**
-     * Send embed message with invalid fields.
-     */
-    test('Discord - sending embed message with incorrect fields type', ()=>{
-        expect(()=>discord.sendEmbedMessage('a', {fields:'a'})).toThrow('Data fields is not an array');
-    });
+    test('message is null', ()=>{
+        return expect(handler.sendMessage('channel', null))
+        .rejects.toBe('No message specified');
+    })
 
-    /**
-     * Send embed message with invalid channel.
-     */
-    test('Discord - sending message with incorrect channel', ()=>{
-        DiscordHelper.failGetChannel();
-        return expect(discord.sendMessage('a', 'test')).rejects.toMatch('Failed to send to all channels');
-    });
+    test('message is wrong type', ()=>{
+        return expect(handler.sendMessage('channel', 1))
+        .rejects.toBe('Message is not a string or MessageEmbed');
+    })
+});
 
-    /**
-     * Fail to send message.
-     */
-    test('Discord - sending message with failure', ()=>{
-        DiscordHelper.failSendMessage();
-        return expect(discord.sendMessage('a', 'test')).rejects.toMatch('Failed to send to all channels');
-    });
+/** @type { Message } */
+const EMBED_DATA = {
+    fields:[
+        {
+            title:'Test',
+            value:'123'
+        }
+    ]
+};
 
-    /**
-     * Fail to send embed message.
-     */
-    test('Discord - sending embed message with failure', ()=>{
-        let mock_data = { 
-            fields:[ { title:'a', value:'b' } ] 
-        };
-        DiscordHelper.failSendMessage();
-        return expect(discord.sendEmbedMessage('a', mock_data)).rejects.toMatch('Failed to send to all channels');
-    });
+/** @type { Message } */
+const EMBED_DATA_NO_FIELDS = { };
 
-    /**
-     * Disconnect from Discord.
-     */
-    test('Discord - disconnect', ()=>{
-        expect(discord).not.toBeFalsy();
-        expect(discord.disconnect()).toBeUndefined();
-    });
+/** @type { Message } */
+const EMBED_DATA_MISTYPE_FIELDS = {
+    fields:1
+};
+
+describe('sendEmbedMessage', ()=>{
+    /* SUCCESS */
+    test('send 1 - string', ()=>{
+        return handler.sendEmbedMessage('channel1', EMBED_DATA)
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    test('send 1 - array', ()=>{
+        return handler.sendEmbedMessage([ 'channel1' ], EMBED_DATA)
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    test('send 2', ()=>{
+        return handler.sendEmbedMessage([ 'channel1', 'channel2' ], EMBED_DATA)
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(2);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    /* FAILURE */
+    test('no channels', ()=>{
+        return expect(handler.sendEmbedMessage([ ], EMBED_DATA))
+        .rejects.toBe('No channels specified');
+    })
+
+    test('channels is null', ()=>{
+        return expect(handler.sendEmbedMessage(null, EMBED_DATA))
+        .rejects.toBe('No channels specified');
+    })
+
+    test('channels is wrong type', ()=>{
+        return expect(handler.sendEmbedMessage(1, EMBED_DATA))
+        .rejects.toBe('Channels is not string or array');
+    })
+
+    test('message uses bad data', ()=>{
+        return expect(handler.sendEmbedMessage('channel', EMBED_DATA_NO_FIELDS))
+        .rejects.toBe('No data fields specified');
+    })
+
+    test('message uses misformed data', ()=>{
+        return expect(handler.sendEmbedMessage('channel', EMBED_DATA_MISTYPE_FIELDS))
+        .rejects.toBe('Data fields is not an array');
+    })
+
+    test('message is null', ()=>{
+        return expect(handler.sendEmbedMessage('channel', null))
+        .rejects.toBe('No data for embed');
+    })
+
+    test('message is wrong type', ()=>{
+        return expect(handler.sendEmbedMessage('channel', 1))
+        .rejects.toBe('Data for embed is wrong type');
+    })
+})
+
+describe('sendImage', ()=>{
+    /* SUCCESS */
+    test('send 1 - string', ()=>{
+        return handler.sendImage('channel1', 'image.png')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    test('send 1 - array', ()=>{
+        return handler.sendImage([ 'channel1' ], 'image.png')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(1);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    test('send 2', ()=>{
+        return handler.sendImage([ 'channel1', 'channel2' ], 'image.png')
+        .then(res=>{
+            expect(res).toBe(true);
+            expect(Discord.TextChannel.prototype.send.mock.calls.length).toBe(2);
+        })
+        .catch(err=>{throw err;});
+    })
+
+    /* FAILURE */
+    test('no channels', ()=>{
+        return expect(handler.sendImage([ ], 'image.png'))
+        .rejects.toBe('No channels specified');
+    })
+
+    test('channels is null', ()=>{
+        return expect(handler.sendImage(null, 'image.png'))
+        .rejects.toBe('No channels specified');
+    })
+
+    test('channels is wrong type', ()=>{
+        return expect(handler.sendImage(1, 'image.png'))
+        .rejects.toBe('Channels is not string or array');
+    })
+
+    test('image is null', ()=>{
+        return expect(handler.sendImage('channel', null))
+        .rejects.toBe('No image specified');
+    })
+
+    test('image is wrong type', ()=>{
+        return expect(handler.sendImage('channel', 1))
+        .rejects.toBe('Image is not a string');
+    })
+})
+
+test('disconnect', ()=>{
+    handler.disconnect();
+    expect(Discord.Client.prototype.destroy.mock.calls.length).toBe(1);
 })
