@@ -52,7 +52,7 @@ function load(path) {
                     if (!details.id || (Array.isArray(details.id) && details.id.length === 0)) {
                         throw `Channel of index ${i} does not list an id`;
                     }
-                    if (!details.stocks || Object.keys(details.stocks).length === 0) {
+                    if ((!details.stocks || Object.keys(details.stocks).length === 0) && Object.keys(settings.stocks).length === 0) {
                         throw `Channel ${details.id} does not provide any stocks`;
                     } else {
                         let stocks = { };

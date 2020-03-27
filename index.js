@@ -35,7 +35,7 @@ const StocksGetter = require('./modules/stocks-getter')(settings.alpha_vantage_a
     }
 
     // get full list of stocks, and each channel with the stocks it's requesting
-    const {stocks,channels} = getStocksAndChannels(settings.stocks, settings.discord_channels, settings.use_image);
+    const {stocks,channels} = getStocksAndChannels(settings.stocks, !settings.isTestMode ? settings.discord_channels : settings.test_channels, settings.use_image);
 
     // get stocks data
     try {
